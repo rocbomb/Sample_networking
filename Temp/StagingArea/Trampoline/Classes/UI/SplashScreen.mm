@@ -71,9 +71,6 @@ static const char* GetScaleSuffix(float scale, float maxScale)
 */
 - (void)updateOrientation:(ScreenOrientation)orient
 {
-	UnityReportResizeView(self.bounds.size.width * self.contentScaleFactor, self.bounds.size.height * self.contentScaleFactor, orient);
-
-
 	bool orientPortrait  = (orient == portrait || orient == portraitUpsideDown);
 	bool orientLandscape = (orient == landscapeLeft || orient == landscapeRight);
 
@@ -172,9 +169,9 @@ static const char* GetScaleSuffix(float scale, float maxScale)
 								  iOSSuffix, orientSuffix, rezolutionSuffix, scaleSuffix];
 		}
 
-		NSString* imagePath = [[NSBundle mainBundle] pathForResource:imageName ofType:@"png"];
+		NSString* imagePath = [[NSBundle mainBundle] pathForResource: imageName ofType: @"png"];
 
-		image = [UIImage imageWithContentsOfFile:imagePath];
+		image = [UIImage imageWithContentsOfFile: imagePath];
 	}
 
 	if (self->m_ImageView == nil)
@@ -183,9 +180,7 @@ static const char* GetScaleSuffix(float scale, float maxScale)
 		[self addSubview:self->m_ImageView];
 	}
 	else
-	{
 		self->m_ImageView.image = image;
-	}
 }
 
 - (void)layoutSubviews
@@ -215,7 +210,7 @@ static const char* GetScaleSuffix(float scale, float maxScale)
 static void WillRotateToInterfaceOrientation_DefaultImpl(id self_, SEL _cmd, UIInterfaceOrientation toInterfaceOrientation, NSTimeInterval duration)
 {
 	if(_isOrientable)
-		[_splash updateOrientation:ConvertToUnityScreenOrientation(toInterfaceOrientation)];
+		[_splash updateOrientation: ConvertToUnityScreenOrientation(toInterfaceOrientation)];
 
 	UNITY_OBJC_FORWARD_TO_SUPER(self_, [UIViewController class], @selector(willRotateToInterfaceOrientation:duration:), WillRotateToInterfaceOrientationSendFunc, toInterfaceOrientation, duration);
 }
@@ -268,10 +263,10 @@ static void ViewWillTransitionToSize_DefaultImpl(id self_, SEL _cmd, CGSize size
 	bool isIpad = !isIphone;
 
 	// splash will be shown way before unity is inited so we need to override autorotation handling with values read from info.plist
-	_canRotateToPortrait			= [supportedOrientation containsObject:@"UIInterfaceOrientationPortrait"];
-	_canRotateToPortraitUpsideDown	= [supportedOrientation containsObject:@"UIInterfaceOrientationPortraitUpsideDown"];
-	_canRotateToLandscapeLeft		= [supportedOrientation containsObject:@"UIInterfaceOrientationLandscapeRight"];
-	_canRotateToLandscapeRight		= [supportedOrientation containsObject:@"UIInterfaceOrientationLandscapeLeft"];
+	_canRotateToPortrait			= [supportedOrientation containsObject: @"UIInterfaceOrientationPortrait"];
+	_canRotateToPortraitUpsideDown	= [supportedOrientation containsObject: @"UIInterfaceOrientationPortraitUpsideDown"];
+	_canRotateToLandscapeLeft		= [supportedOrientation containsObject: @"UIInterfaceOrientationLandscapeRight"];
+	_canRotateToLandscapeRight		= [supportedOrientation containsObject: @"UIInterfaceOrientationLandscapeLeft"];
 
 	CGSize size = [[UIScreen mainScreen] bounds].size;
 
@@ -297,7 +292,7 @@ static void ViewWillTransitionToSize_DefaultImpl(id self_, SEL _cmd, CGSize size
 	else
 		_nonOrientableDefaultOrientation = portrait;
 
-	_splash = [[SplashScreen alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+	_splash = [[SplashScreen alloc] initWithFrame: [[UIScreen mainScreen] bounds]];
 	_splash.contentScaleFactor = [UIScreen mainScreen].scale;
 
 	if (_isOrientable)
@@ -321,12 +316,12 @@ static void ViewWillTransitionToSize_DefaultImpl(id self_, SEL _cmd, CGSize size
 	self.wantsFullScreenLayout = TRUE;
 #endif
 
-	[window addSubview:_splash];
+	[window addSubview: _splash];
 	window.rootViewController = self;
-	[window bringSubviewToFront:_splash];
+	[window bringSubviewToFront: _splash];
 
 	ScreenOrientation orient = UIViewControllerOrientation(self);
-	[_splash updateOrientation:orient];
+	[_splash updateOrientation: orient];
 	
 	if (!_isOrientable)
 		orient = _nonOrientableDefaultOrientation;

@@ -7,18 +7,9 @@
 #include "UnityRendering.h"
 
 // unity plugin functions
-
-// audio plugin api
-typedef int     (*UnityPluginGetAudioEffectDefinitionsFunc)(struct UnityAudioEffectDefinition*** descptr);
-
-// OLD rendering plugin api (will become obsolete soon)
 typedef	void	(*UnityPluginSetGraphicsDeviceFunc)(void* device, int deviceType, int eventType);
 typedef	void	(*UnityPluginRenderMarkerFunc)(int marker);
-
-// new rendering plugin api
-typedef void	(*UnityPluginLoadFunc)(struct IUnityInterfaces* unityInterfaces);
-typedef void	(*UnityPluginUnloadFunc)();
-
+typedef int     (*UnityPluginGetAudioEffectDefinitionsFunc)(struct UnityAudioEffectDefinition*** descptr);
 
 // log handler function
 #ifdef __cplusplus
@@ -60,23 +51,26 @@ void	UnityFinishRendering();
 // for Create* functions if surf is null we will actuially create new one, otherwise we update the one provided
 // gles: one and only one of texid/rbid should be non-zero
 // metal: resolveTex should be non-nil only if tex have AA
-UnityRenderBufferHandle	UnityCreateExternalSurfaceGLES(UnityRenderBufferHandle surf, int isColor, unsigned texid, unsigned rbid, unsigned glesFormat, const UnityRenderBufferDesc* desc);
-UnityRenderBufferHandle	UnityCreateExternalSurfaceMTL(UnityRenderBufferHandle surf, int isColor, MTLTextureRef tex, const UnityRenderBufferDesc* desc);
-UnityRenderBufferHandle	UnityCreateExternalColorSurfaceMTL(UnityRenderBufferHandle surf, MTLTextureRef tex, MTLTextureRef resolveTex, const UnityRenderBufferDesc* desc);
-UnityRenderBufferHandle	UnityCreateExternalDepthSurfaceMTL(UnityRenderBufferHandle surf, MTLTextureRef tex, MTLTextureRef stencilTex, const UnityRenderBufferDesc* desc);
+UnityRenderBuffer	UnityCreateExternalSurfaceGLES(UnityRenderBuffer surf, int isColor, unsigned texid, unsigned rbid, unsigned glesFormat, const UnityRenderBufferDesc* desc);
+UnityRenderBuffer	UnityCreateExternalSurfaceMTL(UnityRenderBuffer surf, int isColor, MTLTextureRef tex, const UnityRenderBufferDesc* desc);
+UnityRenderBuffer	UnityCreateExternalColorSurfaceMTL(UnityRenderBuffer surf, MTLTextureRef tex, MTLTextureRef resolveTex, const UnityRenderBufferDesc* desc);
+UnityRenderBuffer	UnityCreateExternalDepthSurfaceMTL(UnityRenderBuffer surf, MTLTextureRef tex, MTLTextureRef stencilTex, const UnityRenderBufferDesc* desc);
 // creates "dummy" surface - will indicate "missing" buffer (e.g. depth-only RT will have color as dummy)
-UnityRenderBufferHandle	UnityCreateDummySurface(UnityRenderBufferHandle surf, int isColor, const UnityRenderBufferDesc* desc);
+UnityRenderBuffer	UnityCreateDummySurface(UnityRenderBuffer surf, int isColor, const UnityRenderBufferDesc* desc);
 
 // disable rendering to render buffers (all Cameras that were rendering to one of buffers would be reset to use backbuffer)
-void	UnityDisableRenderBuffers(UnityRenderBufferHandle color, UnityRenderBufferHandle depth);
+void	UnityDisableRenderBuffers(UnityRenderBuffer color, UnityRenderBuffer depth);
 // destroys render buffer
-void	UnityDestroyExternalSurface(UnityRenderBufferHandle surf);
+void	UnityDestroyExternalSurface(UnityRenderBuffer surf);
 // sets current render target
-void	UnitySetRenderTarget(UnityRenderBufferHandle color, UnityRenderBufferHandle depth);
+void	UnitySetRenderTarget(UnityRenderBuffer color, UnityRenderBuffer depth);
 // final blit to backbuffer
-void	UnityBlitToBackbuffer(UnityRenderBufferHandle srcColor, UnityRenderBufferHandle dstColor, UnityRenderBufferHandle dstDepth);
-// get native renderbuffer from handle
-UnityRenderBuffer	UnityNativeRenderBufferFromHandle(UnityRenderBufferHandle rb);
+void	UnityBlitToBackbuffer(UnityRenderBuffer srcColor, UnityRenderBuffer dstColor, UnityRenderBuffer dstDepth);
+// signal unity that we start new frame with given backbuffer
+void	UnityStartFrame(UnityRenderBuffer color, UnityRenderBuffer depth);
+// signal unity that we are about to end current frame
+void	UnityEndFrame();
+
 
 // This must match the one in ApiEnumsGLES.h
 typedef enum UnityFramebufferTarget
@@ -86,14 +80,22 @@ typedef enum UnityFramebufferTarget
 	kFramebufferTargetCount
 }UnityFramebufferTarget;
 void	UnityBindFramebuffer(UnityFramebufferTarget target, int fbo);
-void	UnityRegisterFBO(UnityRenderBufferHandle color, UnityRenderBufferHandle depth, unsigned fbo);
+void	UnityRegisterFBO(UnityRenderBuffer color, UnityRenderBuffer depth, unsigned fbo);
 
-// OLD metal plugins support (will become obsolete soon)
+// metal plugins support
 
+// we expect that you or use current MTLCommandEncoder (to do some custom rendering)
+// or if you need your own MTLCommandEncoder you should end unity one with UnityEndCurrentMTLCommandEncoder and you should end your own before returning to unity
+
+// queries current in-flight MTLCommandEncoder (might be nil)
 MTLCommandEncoderRef	UnityCurrentMTLCommandEncoder();
+// ends current in-flight MTLCommandEncoder
 void					UnityEndCurrentMTLCommandEncoder();
+// queries texture from RenderBuffer (both color/depth are supported)
 MTLTextureRef			UnityRenderBufferMTLTexture(UnityRenderBuffer buffer);
+// queries AA resolve texture from color RenderBuffer (might be nil, e.g. not AA-ed RenderBuffer). Returns nil for depth RenderBuffer
 MTLTextureRef			UnityRenderBufferAAResolvedMTLTexture(UnityRenderBuffer buffer);
+// queries stencil texture from depth RenderBuffer (might be nil). Returns nil for color RenderBuffer
 MTLTextureRef			UnityRenderBufferStencilMTLTexture(UnityRenderBuffer buffer);
 
 
@@ -117,10 +119,7 @@ MTLCommandBufferRef	UnityCurrentMTLCommandBuffer();
 
 // plugins support
 
-// WARNING: old UnityRegisterRenderingPlugin will become obsolete soon
 void	UnityRegisterRenderingPlugin(UnityPluginSetGraphicsDeviceFunc setDevice, UnityPluginRenderMarkerFunc renderMarker);
-
-void	UnityRegisterRenderingPluginV5(UnityPluginLoadFunc loadPlugin, UnityPluginUnloadFunc unloadPlugin);
 void	UnityRegisterAudioPlugin(UnityPluginGetAudioEffectDefinitionsFunc getAudioEffectDefinitions);
 
 
@@ -136,7 +135,7 @@ int		UnityShouldAutorotate();
 int		UnityRequestedScreenOrientation(); // returns ScreenOrientation
 
 int		UnityReportResizeView(unsigned w, unsigned h, unsigned /*ScreenOrientation*/ contentOrientation);	// returns ScreenOrientation
-void	UnityReportBackbufferChange(UnityRenderBufferHandle colorBB, UnityRenderBufferHandle depthBB);
+void	UnityReportBackbufferChange(UnityRenderBuffer colorBB, UnityRenderBuffer depthBB);
 
 
 
@@ -290,8 +289,8 @@ MTLCommandQueueRef	UnityGetMetalCommandQueue();
 
 EAGLContext*		UnityGetDataContextEAGL();
 
-UnityRenderBufferHandle	UnityBackbufferColor();
-UnityRenderBufferHandle	UnityBackbufferDepth();
+UnityRenderBuffer	UnityBackbufferColor();
+UnityRenderBuffer	UnityBackbufferDepth();
 
 // UI/ActivityIndicator.mm
 void			UnityStartActivityIndicator();
@@ -305,7 +304,6 @@ void			UnityKeyboard_GetRect(float* x, float* y, float* w, float* h);
 void			UnityKeyboard_SetText(const char* text);
 NSString*		UnityKeyboard_GetText();
 int				UnityKeyboard_IsActive();
-void			UnityKeyboard_PrepareToShow();
 int				UnityKeyboard_IsDone();
 int				UnityKeyboard_WasCanceled();
 void			UnityKeyboard_SetInputHidden(int hidden);

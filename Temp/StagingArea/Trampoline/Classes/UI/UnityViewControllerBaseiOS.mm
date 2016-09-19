@@ -208,23 +208,22 @@ static void ViewWillTransitionToSize_DefaultImpl(id self_, SEL _cmd, CGSize size
 	// in case of presentation controller it will take control over orientations
 	// so to avoid crazy-ass corner cases, make default view controller to ignore "wrong" orientations
 	// as they will come only in case of presentation view controller and will be reverted anyway
-	// NB: we still want to pass message to super, we just want to skip unity-specific magic
 	NSUInteger targetMask = 1 << ConvertToIosScreenOrientation(newOrient);
-	if(([self supportedInterfaceOrientations] & targetMask) != 0)
-	{
-		[UIView setAnimationsEnabled:UnityUseAnimatedAutorotation()?YES:NO];
-		[KeyboardDelegate StartReorientation];
+	if(([self supportedInterfaceOrientations] & targetMask) == 0)
+		return;
 
-		[GetAppController() interfaceWillChangeOrientationTo:ConvertToIosScreenOrientation(newOrient)];
+	[UIView setAnimationsEnabled:UnityUseAnimatedAutorotation()?YES:NO];
+	[KeyboardDelegate StartReorientation];
 
-		[coordinator animateAlongsideTransition:nil completion:^(id<UIViewControllerTransitionCoordinatorContext> context){
-			[self.view layoutSubviews];
-			[GetAppController() interfaceDidChangeOrientationFrom:ConvertToIosScreenOrientation(curOrient)];
+	[GetAppController() interfaceWillChangeOrientationTo:ConvertToIosScreenOrientation(newOrient)];
 
-			[KeyboardDelegate FinishReorientation];
-			[UIView setAnimationsEnabled:YES];
-		}];
-	}
+	[coordinator animateAlongsideTransition:nil completion:^(id<UIViewControllerTransitionCoordinatorContext> context){
+		[self.view layoutSubviews];
+		[GetAppController() interfaceDidChangeOrientationFrom:ConvertToIosScreenOrientation(curOrient)];
+
+		[KeyboardDelegate FinishReorientation];
+		[UIView setAnimationsEnabled:YES];
+	}];
 	UNITY_OBJC_FORWARD_TO_SUPER(self_, [UIViewController class], @selector(viewWillTransitionToSize:withTransitionCoordinator:), ViewWillTransitionToSizeSendFunc, size, coordinator);
 }
 

@@ -29,11 +29,11 @@
 typedef struct
 UnityDisplaySurfaceBase
 {
-	UnityRenderBufferHandle	unityColorBuffer;
-	UnityRenderBufferHandle	unityDepthBuffer;
+	UnityRenderBuffer	unityColorBuffer;
+	UnityRenderBuffer	unityDepthBuffer;
 
-	UnityRenderBufferHandle	systemColorBuffer;
-	UnityRenderBufferHandle	systemDepthBuffer;
+	UnityRenderBuffer	systemColorBuffer;
+	UnityRenderBuffer	systemDepthBuffer;
 
 	void*				cvTextureCache;			// CVOpenGLESTextureCacheRef
 	void*				cvTextureCacheTexture;	// CVOpenGLESTextureRef
@@ -75,7 +75,7 @@ START_STRUCT(UnityDisplaySurfaceGLES, UnityDisplaySurfaceBase)
 	unsigned	msaaColorRB;
 
 	// when we enable AA for non-native resolution we need interim RT to resolve AA to (and then we will blit it to screen)
-	UnityRenderBufferHandle	resolvedColorBuffer;
+	UnityRenderBuffer	resolvedColorBuffer;
 
 
 	// will be "shared", only one depth buffer is needed

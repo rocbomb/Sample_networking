@@ -39,10 +39,7 @@ extern bool _unityAppReady;
 #if UNITY_TVOS
 - (UnityViewControllerBase*)createUnityViewControllerForTVOS
 {
-	UnityDefaultTVViewController* controller = [[UnityDefaultTVViewController alloc] init];
-	// This enables game controller use in on-screen keyboard
-	controller.controllerUserInteractionEnabled = YES;
-	return controller;	
+	return [[UnityDefaultTVViewController alloc] init];
 }
 #else
 - (UnityViewControllerBase*)createAutorotatingUnityViewController
@@ -67,10 +64,7 @@ extern bool _unityAppReady;
 {
 	NSAssert(orientation != 0, @"Bad UIInterfaceOrientation provided");
 	if(_viewControllerForOrientation[orientation] == nil)
-	{
-		_viewControllerForOrientation[orientation] =
-				(UnityViewControllerBase*)[self createUnityViewControllerForOrientation:orientation];
-	}
+		_viewControllerForOrientation[orientation] = [self createUnityViewControllerForOrientation:orientation];
 	return _viewControllerForOrientation[orientation];
 
 }
@@ -95,16 +89,13 @@ extern bool _unityAppReady;
 	if(UnityShouldAutorotate())
 	{
 		if(_viewControllerForOrientation[0] == nil)
-		{
-			_viewControllerForOrientation[0] =
-					(UnityViewControllerBase*)[self createAutorotatingUnityViewController];
-		}
+			_viewControllerForOrientation[0] = [self createAutorotatingUnityViewController];
 		ret = _viewControllerForOrientation[0];
 	}
 	else
 	{
 		UIInterfaceOrientation orientation = ConvertToIosScreenOrientation((ScreenOrientation)UnityRequestedScreenOrientation());
-		ret = (UnityViewControllerBase*)[self createRootViewControllerForOrientation:orientation];
+		ret = [self createRootViewControllerForOrientation:orientation];
 	}
 
 	if(_curOrientation == UIInterfaceOrientationUnknown)

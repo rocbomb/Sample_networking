@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
-
-public class PlayerController : MonoBehaviour 
+using UnityEngine.UI;
+public class PlayerController : Photon.MonoBehaviour 
 {
 	[HideInInspector]
 	public bool facingRight = true;
@@ -12,7 +12,7 @@ public class PlayerController : MonoBehaviour
 	private bool grounded = false;
 	private Transform groundCheck;
 
-	public float moveForce = 365f;// 此变量设置添加的刚体力的大小
+	public float moveForce = 365f;// 
 	public float maxSpeed = 5f; // max speed 
 
 	public JoyStickerController moveJoysticker;
@@ -21,7 +21,6 @@ public class PlayerController : MonoBehaviour
 	private Rigidbody2D rigidbody2D;
 	private Transform camTransform;
 
-
 	private Animator anim;
 
 	void Awake()
@@ -29,6 +28,7 @@ public class PlayerController : MonoBehaviour
 		groundCheck = transform.Find ("groundCheck");
 		rigidbody2D = GetComponent<Rigidbody2D> ();
 		jumpButton = GetComponent<JumpButton> ();
+
 
 	}
 
@@ -63,7 +63,7 @@ public class PlayerController : MonoBehaviour
 
 		if (h * rigidbody2D.velocity.x < maxSpeed) {
 			rigidbody2D.AddForce (Vector2.right * h * moveForce);
-
+			Debug.Log ("moveeee");
 		}
 		if(Mathf.Abs(rigidbody2D.velocity.x) > maxSpeed)
 		{
@@ -85,11 +85,6 @@ public class PlayerController : MonoBehaviour
 		theScale.x *= -1;
 		transform.localScale = theScale;
 	}
-
-
-
-
-
 
 	// Use this for initialization
 	void Start () {

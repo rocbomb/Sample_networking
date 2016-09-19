@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Unity/GlesHelper.h"
-#include "iPhone_Sensors.h"
 
 @interface UnityView : UnityRenderingView
 {
@@ -31,11 +30,6 @@
 - (void)touchesEnded:(NSSet*)touches withEvent:(UIEvent*)event;
 - (void)touchesCancelled:(NSSet*)touches withEvent:(UIEvent*)event;
 - (void)touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event;
-
-#if UNITY_TVOS_SIMULATOR_FAKE_REMOTE
-- (void)pressesBegan:(NSSet<UIPress*>*)presses withEvent:(UIEvent*)event;
-- (void)pressesEnded:(NSSet<UIPress*>*)presses withEvent:(UIEvent*)event;
-#endif
 
 // will match script-side Screen.orientation
 @property (nonatomic, readonly) ScreenOrientation contentOrientation;
