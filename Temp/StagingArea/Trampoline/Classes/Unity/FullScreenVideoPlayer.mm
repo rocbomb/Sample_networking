@@ -200,17 +200,16 @@ static AVKitVideoPlayback*	_AVKitVideoPlayback	= nil;
 @implementation AVKitVideoPlayback
 static Class _AVPlayerViewControllerClass = nil;
 
-#if !UNITY_TVOS
+#if UNITY_IOS
 static NSUInteger supportedInterfaceOrientations_DefaultImpl(id self_, SEL _cmd)
 {
 	return GetAppController().rootViewController.supportedInterfaceOrientations;
 }
 #endif
 
-+ (void)InitClass
++ (void)initialize
 {
-	// TODO: dispatch_once
-	if(_AVPlayerViewControllerClass == nil)
+	if(self == [AVKitVideoPlayback class])
 	{
 		NSBundle* avKitBundle = [NSBundle bundleWithPath:@"/System/Library/Frameworks/AVKit.framework"];
 		if(avKitBundle)
@@ -220,7 +219,7 @@ static NSUInteger supportedInterfaceOrientations_DefaultImpl(id self_, SEL _cmd)
 				[avKitBundle unload];
 				return;
 			}
-#if !UNITY_TVOS
+#if UNITY_IOS
 			ObjCSetKnownInstanceMethod(_AVPlayerViewControllerClass, @selector(supportedInterfaceOrientations), (IMP)&supportedInterfaceOrientations_DefaultImpl);
 #endif
 		}
@@ -228,7 +227,6 @@ static NSUInteger supportedInterfaceOrientations_DefaultImpl(id self_, SEL _cmd)
 }
 + (BOOL)IsSupported
 {
-	[AVKitVideoPlayback InitClass];
 	return _AVPlayerViewControllerClass != nil;
 }
 - (id)initAndPlay:(NSURL*)url bgColor:(UIColor*)color showControls:(BOOL)controls videoGravity:(const NSString*)scaling cancelOnTouch:(BOOL)cot
@@ -254,7 +252,6 @@ static NSUInteger supportedInterfaceOrientations_DefaultImpl(id self_, SEL _cmd)
 {
 	@autoreleasepool
 	{
-		[AVKitVideoPlayback InitClass];
 		videoViewController = [[_AVPlayerViewControllerClass alloc] init];
 
 		videoViewController.showsPlaybackControls = showControls;
@@ -403,6 +400,7 @@ extern "C" void UnityPlayFullScreenVideo(const char* path, const float* color, u
 		url = [NSURL fileURLWithPath:fullPath];
 	}
 
+	// first try AVKit
 	{
 		const BOOL		showControls[]	=	{ YES, YES, NO, NO };
 		const NSString* videoGravity[]	=
@@ -415,7 +413,8 @@ extern "C" void UnityPlayFullScreenVideo(const char* path, const float* color, u
 
 		if([AVKitVideoPlayback IsSupported])
 		{
-			[_AVKitVideoPlayback finish];
+			if (_AVKitVideoPlayback)
+				[_AVKitVideoPlayback finish];
 			_AVKitVideoPlayback = [[AVKitVideoPlayback alloc] initAndPlay:url bgColor:bgColor
 				showControls:showControls[controls] videoGravity:videoGravity[scaling] cancelOnTouch:cancelOnTouch[controls]
 			];
@@ -423,6 +422,7 @@ extern "C" void UnityPlayFullScreenVideo(const char* path, const float* color, u
 		}
 	}
 
+	// MediaPlayer only if AVKit is not supported (old ios)
 #if UNITY_IOS
 	{
 		const MPMovieControlStyle controlMode[] =
@@ -440,11 +440,23 @@ extern "C" void UnityPlayFullScreenVideo(const char* path, const float* color, u
 			MPMovieScalingModeFill,
 		};
 
-		[_MPVideoPlayback finish];
+		if (_MPVideoPlayback)
+			[_MPVideoPlayback finish];
 		_MPVideoPlayback = [[MPVideoPlayback alloc] initAndPlay:url bgColor:bgColor
 			controls:controlMode[controls] scaling:scalingMode[scaling] cancelOnTouch:cancelOnTouch[controls]
 		];
 	}
+#endif
+}
+
+extern "C" void UnityStopFullScreenVideoIfPlaying()
+{
+	if (_AVKitVideoPlayback)
+		[_AVKitVideoPlayback finish];
+
+#if UNITY_IOS
+	if (_MPVideoPlayback)
+		[_MPVideoPlayback finish];
 #endif
 }
 

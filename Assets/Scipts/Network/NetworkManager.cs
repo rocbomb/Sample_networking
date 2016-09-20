@@ -7,8 +7,11 @@ public class NetworkManager : MonoBehaviour {
 	public string roomName = "room";
 	public string playerPrefabName = "player";
 	public Transform spawnPoint;
-	public Text name;
 	// Use this for initialization
+
+	public string baseName = "YOU";
+	private int playerNum = 1;
+	public Text playerName;
 
 	void Start () {
 		//		PhotonNetwork.ConnectUsingSettings (VERSION);
@@ -17,6 +20,9 @@ public class NetworkManager : MonoBehaviour {
 
 
 	void Connect () {
+		if (playerName != null) {
+			playerName.enabled = false;
+		}
 		PhotonNetwork.ConnectUsingSettings (VERSION);
 	}
 
@@ -45,6 +51,7 @@ public class NetworkManager : MonoBehaviour {
 	void SpawnPlayer () {
 		GameObject myPlayer = (GameObject)PhotonNetwork.Instantiate (playerPrefabName, spawnPoint.position, spawnPoint.rotation, 0);
 		myPlayer.GetComponent<PlayerController> ().enabled = true;
-		name.text = "haha";
+	
+
 	}
 }

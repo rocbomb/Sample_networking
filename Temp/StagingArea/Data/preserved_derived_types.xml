@@ -73,6 +73,7 @@
 <type fullname="SmoothSyncMovement" preserve="all"/>
 <type fullname="SupportLogger" preserve="all"/>
 <type fullname="SupportLogging" preserve="all"/>
+<type fullname="FaceCamare" preserve="all"/>
 <type fullname="JoyStickerController" preserve="all"/>
 <type fullname="JumpButton" preserve="all"/>
 <type fullname="NetworkManager" preserve="all"/>

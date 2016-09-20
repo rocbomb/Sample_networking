@@ -17,13 +17,7 @@ public class JoyStickerController : MonoBehaviour, IDragHandler, IPointerUpHandl
 		bgImg = GetComponent<Image> ();
 		joystickerImg = transform.GetChild(0).GetComponent<Image> ();
 		InputDirection = Vector3.zero;
-
-
 	}
-
-
-
-
 
 	public virtual void OnDrag(PointerEventData ped)
 	{
@@ -41,7 +35,7 @@ public class JoyStickerController : MonoBehaviour, IDragHandler, IPointerUpHandl
 			InputDirection = (InputDirection.magnitude > 1) ? InputDirection.normalized : InputDirection;
 
 			joystickerImg.rectTransform.anchoredPosition = new Vector3 (InputDirection.x * (bgImg.rectTransform.sizeDelta.x / 3), InputDirection.z * (bgImg.rectTransform.sizeDelta.y / 3));
-
+	
 		}
 	}
 
@@ -60,8 +54,6 @@ public class JoyStickerController : MonoBehaviour, IDragHandler, IPointerUpHandl
 	}
 
 
-
-	
 	// Update is called once per frame
 	void Update () {
 	
