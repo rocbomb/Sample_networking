@@ -41,7 +41,8 @@ public class PlayerController : Photon.MonoBehaviour
 
 		if (!photonView.isMine) {
 			GetComponent<SpriteRenderer> ().color = Color.red;
-		}
+            GetComponent<Rigidbody2D>().gravityScale = 0;
+        }
 	}
 
 	void Update()
